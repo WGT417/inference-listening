@@ -402,6 +402,9 @@ var GROUPS = [
 var COLORS=["#0D9488","#10B981","#F59E0B","#EF4444","#8B5CF6","#0EA5E9","#EC4899","#14B8A6","#F97316","#84CC16"];
 function gc(n){var s=0;for(var i=0;i<n.length;i++)s+=n.charCodeAt(i);return COLORS[s%COLORS.length];}
 function ge(id){return document.getElementById(id);}
+function stopAllAudio(){
+  document.querySelectorAll("audio").forEach(function(a){a.pause();});
+}
 function esc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 function ft(ts){
   if(!ts)return"";
@@ -518,6 +521,7 @@ ge("logoBtn").addEventListener("click",function(){renderHome();});
 
 // ── 홈: 조 선택 ──
 function renderHome(){
+  stopAllAudio();
   cg=null;cs=null;detach();
   ge("fabBtn").classList.add("hidden");
   savePos(null,null);
@@ -546,6 +550,7 @@ function getGroup(key){
 
 // ── 조 홈: 1차시/2차시 선택 ──
 function renderGroupHome(key){
+  stopAllAudio();
   cg=key;cs=null;detach();
   ge("fabBtn").classList.add("hidden");
   savePos(key,null);
@@ -576,6 +581,7 @@ function enterSession(s){
 }
 
 function renderBoard(){
+  stopAllAudio();
   var g=getGroup(cg);
   if(!g){renderHome();return;}
   var audio = cs==="1" ? g.audio1 : g.audio2;
