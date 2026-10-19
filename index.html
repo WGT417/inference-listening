@@ -261,31 +261,52 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 <script>
 var FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDhNHNGA6HHL-is5wQ-vwc3J1k1cHX3K7A",
-  authDomain: "cadms-ps.firebaseapp.com",
-  databaseURL: "https://cadms-ps-default-rtdb.firebaseio.com",
-  projectId: "cadms-ps",
-  storageBucket: "cadms-ps.firebasestorage.app",
-  messagingSenderId: "927463425979",
-  appId: "1:927463425979:web:31987c1d3194c03097669e"
+  apiKey: "AIzaSyBhCZ8wVNRoIU-09W9RDrDptttAQ-m61pg",
+  authDomain: "inference-listening.firebaseapp.com",
+  databaseURL: "https://inference-listening-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "inference-listening",
+  storageBucket: "inference-listening.firebasestorage.app",
+  messagingSenderId: "702339141518",
+  appId: "1:702339141518:web:0c3ea5a50be904d5cadedf"
 };
+
+var CLASSES = [
+  {key:"4",name:"1학년 4반"},
+  {key:"5",name:"1학년 5반"}
+];
 
 var STUDENTS = [
   {name:"김우겸",birth:"9999",role:"admin"},
-  {name:"권예서",birth:"0925"},{name:"김도담",birth:"0123"},
-  {name:"김리아",birth:"1011"},{name:"김민수",birth:"0716"},
-  {name:"김재하",birth:"0924"},{name:"서우현",birth:"0812"},
-  {name:"선강희",birth:"0307"},{name:"신승준",birth:"0504"},
-  {name:"윤소정",birth:"0119"},{name:"윤현아",birth:"1114"},
-  {name:"이다은",birth:"0816"},{name:"이상화",birth:"0105"},
-  {name:"이소담",birth:"0711"},{name:"이소율",birth:"0730"},
-  {name:"이의선",birth:"0121"},{name:"이종우",birth:"0419"},
-  {name:"이지환",birth:"0716"},{name:"이하율",birth:"0417"},
-  {name:"이하준",birth:"0513"},{name:"임소원",birth:"0905"},
-  {name:"전하윤",birth:"0301"},{name:"정해밀",birth:"0302"},
-  {name:"최예원",birth:"0513"},{name:"최온유",birth:"0121"},
-  {name:"최현준",birth:"0213"},{name:"표은지",birth:"0922"},
-  {name:"현태민",birth:"0114"},{name:"홍서준",birth:"0304"}
+  // ── 1학년 4반 ──
+  {name:"강민재",birth:"0421",cls:"4"},{name:"권서현",birth:"0415",cls:"4"},
+  {name:"김리윤",birth:"1209",cls:"4"},{name:"김슬아",birth:"1109",cls:"4"},
+  {name:"김진우",birth:"0613",cls:"4"},{name:"박나운",birth:"0322",cls:"4"},
+  {name:"박상욱",birth:"1005",cls:"4"},{name:"박세현",birth:"0604",cls:"4"},
+  {name:"박소율",birth:"1112",cls:"4"},{name:"박찬준",birth:"1106",cls:"4"},
+  {name:"백지아",birth:"0512",cls:"4"},{name:"손민혁",birth:"0705",cls:"4"},
+  {name:"양지안",birth:"0918",cls:"4"},{name:"유예현",birth:"0228",cls:"4"},
+  {name:"유은별",birth:"0926",cls:"4"},{name:"이서윤",birth:"0311",cls:"4"},
+  {name:"이석민",birth:"0817",cls:"4"},{name:"이재하",birth:"0503",cls:"4"},
+  {name:"이창민",birth:"0925",cls:"4"},{name:"임윤서",birth:"0925",cls:"4"},
+  {name:"임종우",birth:"0312",cls:"4"},{name:"정재빈",birth:"0805",cls:"4"},
+  {name:"조아라",birth:"0202",cls:"4"},{name:"차예나",birth:"0416",cls:"4"},
+  {name:"한승현",birth:"0204",cls:"4"},{name:"현재우",birth:"0228",cls:"4"},
+  {name:"홍서아",birth:"1009",cls:"4"},{name:"황선중",birth:"0919",cls:"4"},
+  // ── 1학년 5반 ──
+  {name:"권예서",birth:"0925",cls:"5"},{name:"김도담",birth:"0123",cls:"5"},
+  {name:"김리아",birth:"1011",cls:"5"},{name:"김민수",birth:"0716",cls:"5"},
+  {name:"김재하",birth:"0924",cls:"5"},{name:"서우현",birth:"0812",cls:"5"},
+  {name:"선강희",birth:"0307",cls:"5"},{name:"신승준",birth:"0504",cls:"5"},
+  {name:"윤소정",birth:"0119",cls:"5"},{name:"윤현아",birth:"1114",cls:"5"},
+  {name:"이다은",birth:"0816",cls:"5"},{name:"이상화",birth:"0105",cls:"5"},
+  {name:"이소담",birth:"0711",cls:"5"},{name:"이소율",birth:"0730",cls:"5"},
+  {name:"이의선",birth:"0121",cls:"5"},{name:"이종우",birth:"0419",cls:"5"},
+  {name:"이지환",birth:"0716",cls:"5"},{name:"이하율",birth:"0417",cls:"5"},
+  {name:"이하준",birth:"0513",cls:"5"},{name:"임소원",birth:"0905",cls:"5"},
+  {name:"전하윤",birth:"0301",cls:"5"},{name:"정해밀",birth:"0302",cls:"5"},
+  {name:"최예원",birth:"0513",cls:"5"},{name:"최온유",birth:"0121",cls:"5"},
+  {name:"최현준",birth:"0213",cls:"5"},{name:"표은지",birth:"0922",cls:"5"},
+  {name:"현태민",birth:"0114",cls:"5"},{name:"홍서준",birth:"0304",cls:"5"}
 ];
 
 var GROUPS = [
@@ -428,9 +449,21 @@ function showOnly(id){
 }
 
 // ── 상태 ──
-var db=null, cu=null, cg=null, cs=null, eid=null;
+var db=null, cu=null, cc=null, cg=null, cs=null, eid=null;
 var postLsn=null, cmtLsns={};
 var cmEditPid=null, cmEditCid=null;
+
+// ── 반 ──
+function getClassName(k){
+  for(var i=0;i<CLASSES.length;i++)if(CLASSES[i].key===k)return CLASSES[i].name;
+  return "";
+}
+function postPath(){return "inferposts/c"+cc+"/"+cg+"/s"+cs;}
+function cmtPath(pid){return "infercomments/c"+cc+"/"+cg+"/s"+cs+"/"+pid;}
+function showUser(){
+  ge("uname").textContent=cu.name+(cu.cls?" · "+getClassName(cu.cls):"");
+  ge("atag").classList.toggle("hidden",!cu.isAdmin);
+}
 
 // ── Firebase 초기화 ──
 function startApp(){
@@ -447,14 +480,15 @@ function startApp(){
     var s=sessionStorage.getItem("inferUser");
     if(s){
       var u=JSON.parse(s);
-      if(u&&u.name){
+      if(u&&u.name&&(u.cls||u.isAdmin)){
         cu=u;
-        ge("uname").textContent=u.name;
-        ge("atag").classList.toggle("hidden",!u.isAdmin);
+        cc=cu.cls||CLASSES[0].key;
+        showUser();
         showOnly("mainPage");
         // 위치 복원
         try{
           var pos=JSON.parse(sessionStorage.getItem("inferPos")||"{}");
+          if(cu.isAdmin&&pos.cls)cc=pos.cls;
           if(pos.group){
             cg=pos.group;
             if(pos.session){
@@ -488,12 +522,14 @@ function doLogin(){
   var found=null;
   for(var i=0;i<STUDENTS.length;i++){if(STUDENTS[i].name===name&&STUDENTS[i].birth===birth){found=STUDENTS[i];break;}}
   if(!found){setErr("정보가 일치하지 않습니다. 다시 확인해 주세요.");return;}
-  cu={name:found.name,isAdmin:found.role==="admin"};
-  sessionStorage.setItem("inferUser",JSON.stringify(cu));
-  sessionStorage.removeItem("inferPos");
+  cu={name:found.name,isAdmin:found.role==="admin",cls:found.cls||null};
+  cc=cu.cls||CLASSES[0].key;
+  try{
+    sessionStorage.setItem("inferUser",JSON.stringify(cu));
+    sessionStorage.removeItem("inferPos");
+  }catch(e){}
   ge("loginErr").classList.add("hidden");
-  ge("uname").textContent=cu.name;
-  ge("atag").classList.toggle("hidden",!cu.isAdmin);
+  showUser();
   showOnly("mainPage");
   renderHome();
 }
@@ -505,7 +541,7 @@ ge("inBirth").addEventListener("keydown",function(e){if(e.key==="Enter")doLogin(
 // ── 로그아웃 ──
 ge("logoutBtn").addEventListener("click",function(){
   detach();
-  cu=null;cg=null;cs=null;
+  cu=null;cc=null;cg=null;cs=null;
   sessionStorage.removeItem("inferUser");
   sessionStorage.removeItem("inferPos");
   ge("fabBtn").classList.add("hidden");
@@ -514,7 +550,7 @@ ge("logoutBtn").addEventListener("click",function(){
 });
 
 function savePos(group,session){
-  try{sessionStorage.setItem("inferPos",JSON.stringify({group:group||null,session:session||null}));}catch(e){}
+  try{sessionStorage.setItem("inferPos",JSON.stringify({cls:cc,group:group||null,session:session||null}));}catch(e){}
 }
 
 ge("logoBtn").addEventListener("click",function(){renderHome();});
@@ -532,15 +568,32 @@ function renderHome(){
       +'<div class="rc">1차시 · 2차시</div>'
       +'</div>';
   }).join("");
+  // 관리자는 반을 골라서 볼 수 있음
+  var clsSec="";
+  if(cu&&cu.isAdmin){
+    clsSec='<div class="rsec"><h3>🏫 반 선택</h3><div class="session-tabs">'
+      +CLASSES.map(function(c){
+        return '<div class="session-tab cls-tab'+(c.key===cc?' active':'')+'" data-cls="'+c.key+'"><div class="stitle">'+c.name+'</div></div>';
+      }).join("")
+      +'</div></div>';
+  }
   ge("content").innerHTML =
     '<div class="home">'
     +'<h2>🎧 추론적 듣기 심화 탐구방</h2>'
     +'<p class="sub">담당 조의 음원을 듣고, 질문에 대한 답을 작성해보세요. 다른 친구들의 답변도 함께 볼 수 있어요!</p>'
+    +clsSec
     +'<div class="rsec"><h3>📚 모둠 선택</h3><div class="rgrid">'+cards+'</div></div>'
     +'</div>';
+  ge("content").querySelectorAll(".cls-tab").forEach(function(tab){
+    tab.addEventListener("click",function(){cc=this.getAttribute("data-cls");renderHome();});
+  });
   ge("content").querySelectorAll(".rcard").forEach(function(card){
     card.addEventListener("click",function(){renderGroupHome(this.getAttribute("data-group"));});
   });
+}
+
+function clsBadge(){
+  return cu&&cu.isAdmin?'<span class="bbadge" style="background:var(--primary-dark)">'+getClassName(cc)+'</span>':'';
 }
 
 function getGroup(key){
@@ -559,6 +612,7 @@ function renderGroupHome(key){
     '<div class="bhdr">'
     +'<button class="back-btn" id="backBtn">← 뒤로</button>'
     +'<div class="btitle">'+g.icon+' '+g.name+' 조</div>'
+    +clsBadge()
     +'</div>'
     +'<div class="session-tabs">'
     +'<div class="session-tab" data-s="1"><div class="stitle">📌 1차시</div><div class="sdesc">일상 대화 · 의도 추론</div></div>'
@@ -604,6 +658,7 @@ function renderBoard(){
     '<div class="bhdr">'
     +'<button class="back-btn" id="backBtn">← 뒤로</button>'
     +'<div class="btitle">'+g.icon+' '+g.name+' 조</div>'
+    +clsBadge()
     +'<span class="bbadge" style="background:var(--c-'+g.key+')">'+sessionLabel+'</span>'
     +'<div class="rt-label"><span class="rt-dot"></span>실시간</div>'
     +'</div>'
@@ -627,7 +682,7 @@ function renderBoard(){
 // ── 답변 게시판 ──
 function attachPost(){
   detach();
-  var ref=db.ref("inferposts/"+cg+"/s"+cs);
+  var ref=db.ref(postPath());
   postLsn=ref;
   ref.on("value",function(snap){
     var posts=[];
@@ -657,6 +712,9 @@ function attachPost(){
         if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitCmt(ta.getAttribute("data-pid"));}
       });
     });
+  },function(err){
+    var el=ge("board");
+    if(el)el.innerHTML='<div class="empty"><span class="ei">⚠️</span><p>답변을 불러오지 못했어요.</p><small>'+esc(err.message)+'</small></div>';
   });
 }
 
@@ -716,7 +774,7 @@ function updateTogBtn(btn,pid,isOpen){
 
 function loadCmts(pid){
   if(cmtLsns[pid])cmtLsns[pid].off();
-  var ref=db.ref("infercomments/"+cg+"/s"+cs+"/"+pid);
+  var ref=db.ref(cmtPath(pid));
   cmtLsns[pid]=ref;
   ref.on("value",function(snap){
     var list=ge("clist-"+pid);
@@ -760,7 +818,7 @@ function submitCmt(pid){
   if(!ta)return;
   var body=ta.value.trim();
   if(!body){toast("댓글 내용을 입력해주세요!");return;}
-  db.ref("infercomments/"+cg+"/s"+cs+"/"+pid).push({
+  db.ref(cmtPath(pid)).push({
     body:body,authorName:cu.name,isAdmin:cu.isAdmin?true:false,createdAt:Date.now()
   }).then(function(){
     ta.value="";
@@ -787,7 +845,7 @@ ge("cmEditSave").addEventListener("click",function(){
   if(!body){toast("댓글 내용을 입력해주세요!");return;}
   if(!cmEditPid||!cmEditCid)return;
   var btn=ge("cmEditSave");btn.disabled=true;btn.textContent="저장 중...";
-  db.ref("infercomments/"+cg+"/s"+cs+"/"+cmEditPid+"/"+cmEditCid)
+  db.ref(cmtPath(cmEditPid)+"/"+cmEditCid)
     .update({body:body,updatedAt:Date.now()})
     .then(function(){
       toast("✅ 댓글이 수정되었습니다!");
@@ -800,7 +858,7 @@ ge("cmEditSave").addEventListener("click",function(){
 
 function delCmt(pid,cid){
   if(!confirm("댓글을 삭제할까요?"))return;
-  db.ref("infercomments/"+cg+"/s"+cs+"/"+pid+"/"+cid).remove()
+  db.ref(cmtPath(pid)+"/"+cid).remove()
     .then(function(){toast("댓글이 삭제되었습니다.");})
     .catch(function(e){toast("❌ 오류: "+e.message);});
 }
@@ -831,7 +889,7 @@ function buildAnswerForm(existingAnswers){
 }
 
 function openEdit(pid){
-  db.ref("inferposts/"+cg+"/s"+cs+"/"+pid).once("value").then(function(snap){
+  db.ref(postPath()+"/"+pid).once("value").then(function(snap){
     if(!snap.exists())return;
     var p=snap.val();eid=pid;
     ge("mtitle").textContent="✏️ 답변 수정";
@@ -857,7 +915,7 @@ ge("mSubmit").addEventListener("click",function(){
   }
   if(allEmpty){toast("답변을 1개 이상 입력해주세요!");return;}
   var btn=ge("mSubmit");btn.disabled=true;btn.textContent="저장 중...";
-  var ref=db.ref("inferposts/"+cg+"/s"+cs);
+  var ref=db.ref(postPath());
   var p;
   if(eid){
     p=ref.child(eid).update({answers:answers,updatedAt:Date.now()});
@@ -876,7 +934,7 @@ ge("mSubmit").addEventListener("click",function(){
 
 function delPost(pid){
   if(!confirm("이 답변을 삭제할까요?"))return;
-  db.ref("inferposts/"+cg+"/s"+cs+"/"+pid).remove()
+  db.ref(postPath()+"/"+pid).remove()
     .then(function(){toast("🗑 삭제되었습니다.");})
     .catch(function(e){toast("❌ 삭제 실패: "+e.message);});
 }
