@@ -156,17 +156,22 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .fab{position:fixed;bottom:28px;right:28px;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#0891B2);color:white;font-size:28px;border:none;cursor:pointer;box-shadow:0 8px 30px rgba(13,148,136,.4);display:flex;align-items:center;justify-content:center;transition:all .25s;z-index:200;touch-action:manipulation;}
 .fab:hover{transform:scale(1.1) rotate(90deg);}
 
-/* 모달 */
-.mback{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;}
-.modal{background:var(--card);border-radius:24px;padding:32px;width:100%;max-width:520px;box-shadow:0 30px 80px rgba(0,0,0,.25);animation:up .3s ease;max-height:90vh;overflow-y:auto;}
-.modal h3{font-family:'Gmarket Sans',sans-serif;font-size:20px;font-weight:700;margin-bottom:20px;}
+/* 슬라이드업 패널 (모달 대체) */
+.mback{position:fixed;bottom:0;left:0;right:0;z-index:1000;display:flex;flex-direction:column;pointer-events:none;}
+.mback.panel-open{pointer-events:auto;}
+.panel-dim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
+.panel-dim.show{opacity:1;pointer-events:auto;}
+.modal{background:var(--card);border-radius:24px 24px 0 0;padding:20px 24px 28px;width:100%;box-shadow:0 -8px 40px rgba(13,148,136,.18);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:70vh;overflow-y:auto;position:relative;z-index:1001;}
+.modal.slide-up{transform:translateY(0);}
+.panel-handle{width:40px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 16px;}
+.modal h3{font-family:'Gmarket Sans',sans-serif;font-size:18px;font-weight:700;margin-bottom:16px;}
 .mfg{margin-bottom:14px;}
 .mfg label{display:block;font-size:13px;font-weight:700;margin-bottom:8px;}
 .mfg .qtext-modal{font-size:13px;color:var(--text);background:var(--bg);border-radius:var(--rs);padding:12px 14px;line-height:1.6;margin-bottom:8px;}
 .mfg input,.mfg textarea{width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:var(--rs);font-family:'Noto Sans KR',sans-serif;font-size:16px;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s;}
 .mfg input:focus,.mfg textarea:focus{border-color:var(--primary);background:white;}
-.mfg textarea{resize:vertical;min-height:90px;}
-.mact{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+.mfg textarea{resize:vertical;min-height:80px;}
+.mact{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
 
 /* 댓글 수정 모달 */
 .cmedit-back{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;}
@@ -236,8 +241,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 <button class="fab hidden" id="fabBtn">＋</button>
 
+<div class="panel-dim hidden" id="panelDim"></div>
 <div class="mback hidden" id="mback">
-  <div class="modal">
+  <div class="modal" id="modalPanel">
+    <div class="panel-handle"></div>
     <h3 id="mtitle">✏️ 답변 작성</h3>
     <div id="mQuestionsArea"></div>
     <div class="mact">
@@ -864,12 +871,32 @@ function delCmt(pid,cid){
 }
 
 // ── 답변 작성 모달 ──
+function openPanel(){
+  ge("mback").classList.remove("hidden");
+  ge("mback").classList.add("panel-open");
+  ge("panelDim").classList.remove("hidden");
+  requestAnimationFrame(function(){
+    ge("panelDim").classList.add("show");
+    ge("modalPanel").classList.add("slide-up");
+  });
+}
+function closePanel(){
+  ge("panelDim").classList.remove("show");
+  ge("modalPanel").classList.remove("slide-up");
+  setTimeout(function(){
+    ge("mback").classList.add("hidden");
+    ge("mback").classList.remove("panel-open");
+    ge("panelDim").classList.add("hidden");
+    eid=null;
+  },350);
+}
+
 ge("fabBtn").addEventListener("click",function(){
   eid=null;
   ge("mtitle").textContent="✏️ 답변 작성";
   buildAnswerForm();
   ge("mSubmit").textContent="등록하기";
-  ge("mback").classList.remove("hidden");
+  openPanel();
 });
 
 function buildAnswerForm(existingAnswers){
@@ -895,11 +922,12 @@ function openEdit(pid){
     ge("mtitle").textContent="✏️ 답변 수정";
     buildAnswerForm(p.answers||[]);
     ge("mSubmit").textContent="수정 완료";
-    ge("mback").classList.remove("hidden");
+    openPanel();
   });
 }
-function closeModal(){ge("mback").classList.add("hidden");eid=null;}
+function closeModal(){closePanel();}
 ge("mCancel").addEventListener("click",closeModal);
+ge("panelDim").addEventListener("click",closeModal);
 // 배경 클릭으로 모달 닫기 비활성화 (취소 버튼으로만 닫기)
 ge("mSubmit").addEventListener("click",function(){
   var g=getGroup(cg);
@@ -924,7 +952,7 @@ ge("mSubmit").addEventListener("click",function(){
   }
   p.then(function(){
     toast(eid?"✅ 수정되었습니다!":"🎉 답변이 등록되었습니다!");
-    closeModal();
+    closePanel();
   }).catch(function(e){
     toast("❌ 저장 실패: "+e.message);
   }).finally(function(){
